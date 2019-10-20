@@ -1,5 +1,6 @@
 
 
+
 # [NativeForms.com](https://nativeforms.com)
 
 ## Build **forms, surveys and polls** for React Native apps.
@@ -11,8 +12,10 @@ We created NativeForms to save you countless hours of boring development of form
 - [Basic Usage](#basic-usage)
 - [Full Example](#full-example)
 - [Demo](#demo)
-- [NativeForms Props](#nativeforms-props)
+- [Props](#props)
 - [File Upload for React Native](#file-upload-for-react-native)
+- [Offline Forms](#offline-forms)
+- [Webhooks](#webhooks)
 - [Live Preview](#live-preview)
 - [Support](#support)
 
@@ -82,17 +85,19 @@ Replace **form prop** with your form's address. You can create your own forms [h
 ## Demo
 ![Demo](https://raw.githubusercontent.com/venits/native-forms/master/assets/demo.gif)
 
-## NativeForms Props
+## Props
 
 | Name               | Type   | Required | Note                                                           |
 |--------------------|--------|---------|----------------------------------------------------------------|
 | **form**        | String   | **Yes**    | URL of **form** to display.       |
+| **formJSON**        | Object   | No    | You can use JSON format of form instead of *form URL*. You can get this format by clicking "Export Form to JSON" in dashboard. Can be used for [offline forms](#offline-forms).   |
 | **onClose**       | Function | No | Called when user decides to close the form.                                         |
 | **onSend**   | Function | No | Called when user **completes** form.                                  |
 | **onBeforeSend**   | Function | No | Called before sending form. Can be used to provide extra data based on user's input.               |
-| **email**   | String | No | Email of person that will complete form (it will be displayed in admin panel).                                   |
+| **noInternetConnection**   | Function | No | Called when user tries to send a form but is offline. Can be used for [offline forms](#offline-forms).              |
+| **email**   | String | No | Email of person that will complete form (it will be displayed in the admin panel).                                   |
 | **name**   | String | No | Name of person that will complete form.                                   |
-| **extraData**   | Object | No | Extra data fields that will be send along with completed form. This data will not be visible by user.                                  |
+| **extraData**   | Object | No | Extra data fields that will be sent along with the completed form. This data will not be visible by users.                                  |
 
 
 Example of using props:
@@ -139,7 +144,7 @@ npm install --save react-native-webview
 react-native link react-native-webview
 ```
 
-### Full code example
+### File Upload - code example
 
 ```js
 import React, { useState } from "react";  
@@ -185,6 +190,80 @@ export default App;
 
 **That's all :)**
 
+## Offline Forms
+
+It can happen that user is offline while completing the form.
+NativeForms gives option to send form later when user is back online.
+The best way to understand how to use forms offline is by looking at the snippet below.
+
+### Offline Forms - code example
+```js
+import React, { useState } from "react";  
+import { Button, StyleSheet, Text, View } from "react-native";  
+import NativeForms, { sendCompletedForm } from "native-forms"; // must be version >= 1.1.4  
+  
+// must be JSON object exported from Dashboard  
+const OFFLINE_FORM = {/* label: 'Offline Form'... */};  
+  
+const App = () => {  
+  const [savedForm, updateSavedForm] = useState(null);  
+  const [hasForm, showForm] = useState(false);  
+  const show = () => showForm(true);  
+  const hide = () => showForm(false);  
+  
+  const sendSavedForm = async () => {  
+    if (savedForm) {  
+      await sendCompletedForm(savedForm);  
+      console.warn("Form sent successfully");  
+    } else {  
+      console.warn("No saved form to send");  
+    }
+  };
+  
+  return (  
+    <View style={styles.container}>  
+      <Text>Offline forms test</Text>  
+  
+      <Button title="Show Form" onPress={show} color="#20f" />  
+      <Button title="Send Saved Form" onPress={sendSavedForm} />  
+  
+      {hasForm && (  
+        <NativeForms  
+	  formJSON={OFFLINE_FORM}  
+          onClose={hide}  
+          noInternetConnection={formJSON => {  
+            updateSavedForm(formJSON);  
+            return true; // yes, I will send form once user is online  
+            // return false; <- No, don't send a thing
+	  }}
+        />
+      )}
+    </View>  
+  );
+};  
+  
+const styles = StyleSheet.create({  
+  container: {  
+    flex: 1,  
+    backgroundColor: "#fff",  
+    alignItems: "center",  
+    justifyContent: "center"  
+  }  
+});  
+  
+export default App;
+```
+
+I know it is little bit tricky :) If you have any problems, please email me at: [hello@nativeforms.com](mailto:hello@nativeforms.com)
+
+## Webhooks
+
+Need full control over your data? No problem we got you.
+**We provide simple webhooks solution:**
+
+![Webhook](https://raw.githubusercontent.com/venits/native-forms/master/assets/webhooks.png)
+
+You can attach multiple webhooks for each form 🎉
 
 ## Live Preview
 Full code examples are available  here:
